@@ -2,7 +2,7 @@ import os
 import shutil
 import argparse
 
-parser = argparse.ArgumentParser(description='copyfile --sdir sourcdir --dir destdir')
+parser = argparse.ArgumentParser(description='copyfile --sdir sourecdir --dir destdir')
 parser.add_argument('--sdir', type=str, default=".",   help='source directory',required=False)
 parser.add_argument('--ddir', type=str, default="dest", help='dest directory',required=False)
 
