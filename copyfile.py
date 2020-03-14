@@ -1,6 +1,7 @@
 import os
 import shutil
 import argparse
+import lgger as lgg
 
 parser = argparse.ArgumentParser(description='copyfile --sdir sourecdir --dir destdir')
 parser.add_argument('--sdir', type=str, default=".",   help='source directory',required=False)
@@ -31,10 +32,18 @@ def copyFromTo(sdir,ddir):
         sfname = f"{sdir}/{fdname}{fname}"
         dfname = f"{ddir}/{fdname}{fname}"
         dddir = f"{ddir}/{fdname}"
+        fclr = lgg.cC
         if not os.path.exists(dddir):
-            print(f"Creating directory {dddir}")
+            lgg.info(f"Creating directory {dddir}",lgg.cR)
             os.makedirs(dddir)
-        print(f"copy from {sfname} to {dfname}")
+        elif os.path.exists(dfname):
+            fclr = lgg.cB
+        lgg.info(f"copy from {sfname} to {dfname}",fclr)
         shutil.copyfile(sfname,dfname)
+
+sdir = args.sdir
+ddir = args.ddir
+
+lgg.info(f"Copying {len(listfiles)} files from {sdir} to {ddir}",lgg.cY)
 
 copyFromTo(args.sdir,args.ddir)
