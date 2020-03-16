@@ -7,23 +7,23 @@ import timeit
 parser = argparse.ArgumentParser(description='copyfile --sdir sourecdir --dir destdir')
 parser.add_argument('--sdir', type=str, default=".",   help='source directory',required=False)
 parser.add_argument('--ddir', type=str, default="dest", help='dest directory',required=False)
-parser.add_argument('--exec', type=bool, default=True, help='dest directory',required=False)
+parser.add_argument('--exec', type=bool, default=False, help='dest directory',required=False)
 
 args = parser.parse_args()
 
 listfiles=[
     ["com.unity.ml-agents/Runtime/","Academy.cs"],
     ["com.unity.ml-agents/Runtime/","Agent.cs"],
-    ["com.unity.ml-agents/Runtime/Communiticator/","RpcCommunicator.cs"],
-    ["ml-agents/ml-agents/mlagents/trainers/","agent_processor.py"],
+    ["com.unity.ml-agents/Runtime/Communicator/","RpcCommunicator.cs"],
+    ["ml-agents/mlagents/trainers/","agent_processor.py"],
     ["ml-agents/ml-agents-env/mlagents_envs/","base_env.py"],
     ["ml-agents/ml-agents-env/mlagents_envs/","communicator.py"],
     ["ml-agents/ml-agents-env/mlagents_envs/","environment.py"],
     ["ml-agents/ml-agents-env/mlagents_envs/","exception.py"],
     ["ml-agents/ml-agents-env/mlagents_envs/","rpc_communicator.py"],
     ["ml-agents/ml-agents-env/mlagents_envs/","rpc_utils.py"],
-    ["ml-agents/protobf-deffinitions/proto/mlagents_envs/communicator_objects/","environment_statistics.proto"],
-    ["ml-agents/protobf-deffinitions/proto/mlagents_envs/communicator_objects/","unity_rl_output.proto"],
+    ["ml-agents/protobuf-definitions/proto/mlagents_envs/communicator_objects/","environment_statistics.proto"],
+    ["ml-agents/protobuf-definitions/proto/mlagents_envs/communicator_objects/","unity_rl_output.proto"],
     ["Project/Assets/ML-Agents/Examples/FoodCollector/Scripts/","FoodCollectorAgent.cs"],
     ["Project/Assets/ML-Agents/Examples/FoodCollector/Scripts/","FoodCollectorSettings.cs"]
     ]
@@ -32,15 +32,21 @@ listfiles=[
 def copyFromTo(sdir,ddir,execute):
     overwrittenfiles = 0
     overwrittenbytes = 0
+    i = 0
     for (fdname,fname) in listfiles:
         sfname = f"{sdir}/{fdname}{fname}"
         dfname = f"{ddir}/{fdname}{fname}"
         dddir = f"{ddir}/{fdname}"
         fclr = lgg.cC 
         ovbytes = 0
-        if execute and (not os.path.exists(dddir)):
-            lgg.info(f"Creating directory {dddir}",lgg.cR)
-            os.makedirs(dddir)
+        ddiristhere = os.path.exists(dddir)
+        if not ddiristhere:
+            if execute:
+                lgg.info(f"Creating directory {dddir}",lgg.cR)
+                os.makedirs(dddir)
+            else:
+                lgg.info(f"Would have created directory {dddir}",lgg.cR)
+
         if os.path.exists(dfname):
             fclr = lgg.cG
             ftats = os.stat(dfname)
@@ -48,9 +54,10 @@ def copyFromTo(sdir,ddir,execute):
             overwrittenbytes += ovbytes
             overwrittenfiles += 1
         execword = "execute" if execute else "fake"
-        lgg.info(f"{execword} copy from {sfname} to {dfname} overwrittenbytes:{ovbytes}",fclr)
+        lgg.info(f"{i}: {execword} copy from {sfname} to {dfname} overwrittenbytes:{ovbytes}",fclr)
         if execute:
             shutil.copyfile(sfname,dfname)
+        i += 1
     return (overwrittenfiles,overwrittenbytes)
 
 sdir = args.sdir
@@ -63,5 +70,6 @@ start = timeit.timeit()
 (ovfiles,ovbytes) = copyFromTo(sdir,ddir,execute)
 elap = timeit.timeit()-start 
 
+tfiles = len(listfiles)
 exword = "" if execute else "Would have "
-lgg.info(f"{exword} Overwritten files:{ovfiles}  overwritenbytes:{ovbytes} secs:{round(elap,3)} ",lgg.cY)
+lgg.info(f"{exword} Overwritten files:{ovfiles}/{tfiles}  overwritenbytes:{ovbytes} secs:{round(elap,3)} ",lgg.cY)
