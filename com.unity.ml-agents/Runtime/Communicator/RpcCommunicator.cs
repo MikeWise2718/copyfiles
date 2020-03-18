@@ -79,6 +79,8 @@ namespace MLAgents
                 CommunicationVersion = initParameters.unityCommunicationVersion
             };
 
+            m_CurrentUnityRlOutput.EnvironmentStatistics = new EnvironmentStatisticsProto();
+
             UnityInputProto input;
             UnityInputProto initializationInput;
             try
@@ -323,6 +325,11 @@ namespace MLAgents
             {
                 message.RlInitializationOutput = tempUnityRlInitializationOutput;
             }
+            EnvironmentStatisticsProto evo = message.RlOutput.EnvironmentStatistics;
+            var aca = Academy.Instance;
+            aca.envStatMan.FillDoubleMapField(evo.DoubleStat);
+            aca.envStatMan.FillStringMapField(evo.StringStat);
+            aca.envStatMan.Reset();
 
             byte[] messageAggregated = GetSideChannelMessage(m_SideChannels);
             message.RlOutput.SideChannel = ByteString.CopyFrom(messageAggregated);
@@ -505,13 +512,17 @@ namespace MLAgents
                     "side channels of the same id.", channelId));
             }
 
+            // Process any messages that we've already received for this channel ID.
             var numMessages = m_CachedMessages.Count;
             for (int i = 0; i < numMessages; i++)
             {
                 var cachedMessage = m_CachedMessages.Dequeue();
                 if (channelId == cachedMessage.ChannelId)
                 {
-                    sideChannel.OnMessageReceived(cachedMessage.Message);
+                    using (var incomingMsg = new IncomingMessage(cachedMessage.Message))
+                    {
+                        sideChannel.OnMessageReceived(incomingMsg);
+                    }
                 }
                 else
                 {
@@ -581,7 +592,10 @@ namespace MLAgents
                 var cachedMessage = m_CachedMessages.Dequeue();
                 if (sideChannels.ContainsKey(cachedMessage.ChannelId))
                 {
-                    sideChannels[cachedMessage.ChannelId].OnMessageReceived(cachedMessage.Message);
+                    using (var incomingMsg = new IncomingMessage(cachedMessage.Message))
+                    {
+                        sideChannels[cachedMessage.ChannelId].OnMessageReceived(incomingMsg);
+                    }
                 }
                 else
                 {
@@ -618,7 +632,10 @@ namespace MLAgents
                         }
                         if (sideChannels.ContainsKey(channelId))
                         {
-                            sideChannels[channelId].OnMessageReceived(message);
+                            using (var incomingMsg = new IncomingMessage(message))
+                            {
+                                sideChannels[channelId].OnMessageReceived(incomingMsg);
+                            }
                         }
                         else
                         {

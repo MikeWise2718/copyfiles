@@ -13,6 +13,9 @@ public class FoodCollectorSettings : MonoBehaviour
     public int totalScore;
     public Text scoreText;
 
+    public int foodEaten;
+    public int poisonEaten;
+
     public void Awake()
     {
         Academy.Instance.OnEnvironmentReset += EnvironmentReset;
@@ -43,6 +46,15 @@ public class FoodCollectorSettings : MonoBehaviour
 
     public void Update()
     {
-        scoreText.text = $"Score: {totalScore}";
+        scoreText.text = $"Score: {totalScore}  f/p:{foodEaten}/{poisonEaten}";
+    }
+
+    public void FixedUpdate()
+    {
+        var ts = Time.time.ToString("f2");
+        Debug.Log($"FoodCollectorSettings - FixedUpdate time:{ts} totalScore:{totalScore} Food:{foodEaten} poison:{poisonEaten}");
+        Academy.Instance.envStatMan.AddFloatStat("FoodCollector/TotalScore", totalScore);
+        Academy.Instance.envStatMan.AddFloatStat("FoodCollector/FoodEaten", foodEaten);
+        Academy.Instance.envStatMan.AddFloatStat("FoodCollector/PoisonEaten", poisonEaten);
     }
 }
